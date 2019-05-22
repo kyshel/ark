@@ -1,0 +1,235 @@
+
+<meta charset="utf-8">
+<title>ark</title>
+<link rel="stylesheet" href="./app.css">
+<script src="./vue.min.js"></script>
+<script src="./jquery-3.3.1.min.js"></script>
+
+<style type="text/css">
+</style>
+<h1>fe</h1>
+
+
+
+<div class="container" id="vue-app">
+
+	<div id="setting-box">
+		<input type="checkbox" id="dbg-checkbox" v-model="checked_dbg">
+		<label for="dbg-checkbox">show dbg</label>
+
+	</div>
+
+
+
+	<div id='error-box' v-if="error">error:{{error}}</div>
+	<div id='msg-box' v-if="msg">msg:{{msg}}</div>
+	<div class="loading" v-if="is_loading">Loading</div>
+
+
+	<div id="req_box">
+		<input id="req_input"  v-model="url" type="" name="">
+
+		<select v-model="http_method_selected">
+			<option v-for="method in http_methods" v-bind:value="method.text">
+				{{ method.text }}
+			</option>
+		</select>
+
+		<button v-on:click="send_req" v-on:keyup.enter="send_req">fuck</button>
+
+		<br>
+
+		<textarea id="post_data_textarea" v-model="post_data" v-if="http_method_selected == 'POST'" placeholder="write your post data">
+
+		</textarea>
+
+
+	</div>
+
+
+
+
+	<div id="res-box">
+		<textarea id="res-textarea" v-model="res_val" placeholder="res will show here"></textarea>
+	</div>
+
+
+
+
+
+
+	<div id="dbg-box" v-if="checked_dbg">
+		<textarea id="dbg-textarea" v-model="dbg_info" placeholder="dbg info will show here"></textarea>
+	</div>
+
+
+
+
+</div>
+
+
+
+
+
+
+
+<script>
+	var app = new Vue({
+		el: '#vue-app',
+		data: {
+			post_data : '',
+			valid_actions : [],
+			example : '',
+			http_method_selected:'GET',
+			http_methods: [
+			{ text: 'GET'},
+			{ text: 'POST'},
+			],
+			url:'127.0.0.1:5000',
+			contentType : undefined,
+			res_val:'',
+			//error_occured:false,
+
+			msg:'',
+			error:'',
+			dbg_info:'',
+			is_loading:false,
+			checked_dbg:true,
+			res_val:'',
+
+
+
+		},
+
+		watch: {
+			url:function () {
+				this.error =''
+			}
+		},
+
+		methods: {
+			send_req: function (){
+				var this_app = this
+				url_with_protocal = 'http://' + this_app.url
+
+				if (!isURL(url_with_protocal)){
+					this_app.error ='check the url!'
+					return
+				}
+
+				this_app.is_loading = true
+
+				$.ajax({
+					method: this_app.http_method_selected,
+					url: url_with_protocal ,
+					data: this_app.post_data,
+					contentType: this_app.contentType,
+				}).done( function(response,status,xhr) {
+					this_app.is_loading = false
+					this_app.res_val=JSON.stringify(response,null, "\t")
+					this_app.msg = 'get res OK'
+
+				}).fail( function(xhr,status,e) {
+					this_app.is_loading = false
+					this_app.msg = e
+					console.log(e)
+				});
+			},
+			get_res: function (){
+
+			}
+
+
+
+
+		}
+	})
+
+
+
+
+	function isURL(str) {
+ 	 var pattern = new RegExp('^(https?:\\/\\/)?'+ // protocol
+  	'((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.?)+[a-z]{2,}|'+ // domain name
+  	'((\\d{1,3}\\.){3}\\d{1,3}))'+ // OR ip (v4) address
+ 	 '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*'+ // port and path
+ 	 '(\\?[;&a-z\\d%_.~+=-]*)?'+ // query string
+ 	 '(\\#[-a-z\\d_]*)?$','i'); // fragment locator
+ 	 return pattern.test(str);
+ 	}
+
+
+
+	function ajax_res1(url,res){
+		console.log(res)
+		$('#res-textarea').val()
+
+	}
+
+	function ajax_req1(url,http_method = 'GET',data = undefined,contentType = undefined){
+		before_ajax()
+		$.ajax({
+			method: http_method,
+			url: url ,
+			data: data,
+
+			contentType: contentType,
+			// async: async,
+			// dataType:'json',
+			// contentType: 'application/json;charset=UTF-8',
+		}).done( function(response,status,xhr) {
+			ajax_res(url, response)
+			after_ajax(url,response)
+		}).fail( function(xhr,status,e) {
+			after_ajax(url,xhr)
+			console.log('Ajax Fail>>>')
+			console.log(e)
+			console.log('Ajax Fail<<<')
+		});
+	}
+
+	function before_ajax1(){
+	}
+	function after_ajax1(url,res){
+	}
+
+
+
+	function clone(obj) {
+		var copy;
+
+    	// Handle the 3 simple types, and null or undefined
+    	if (null == obj || "object" != typeof obj) return obj;
+
+	    // Handle Date
+	    if (obj instanceof Date) {
+	    	copy = new Date();
+	    	copy.setTime(obj.getTime());
+	    	return copy;
+	    }
+
+	    // Handle Array
+	    if (obj instanceof Array) {
+	    	copy = [];
+	    	for (var i = 0, len = obj.length; i < len; i++) {
+	    		copy[i] = clone(obj[i]);
+	    	}
+	    	return copy;
+	    }
+
+	    // Handle Object
+	    if (obj instanceof Object) {
+	    	copy = {};
+	    	for (var attr in obj) {
+	    		if (obj.hasOwnProperty(attr)) copy[attr] = clone(obj[attr]);
+	    	}
+	    	return copy;
+	    }
+
+	    throw new Error("Unable to copy obj! Its type isn't supported.");
+	}
+
+
+
+</script>
+
